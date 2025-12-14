@@ -21,7 +21,20 @@ interface CommentsLineChartProps {
   data: CommentTimePoint[];
 }
 
-export default function CommentsLineChart({ data }: CommentsLineChartProps) {
+import { useMemo } from "react";
+
+const shiftHHMM = (t: string, offsetHours = 7) => {
+  const [hh, mm] = t.split(":").map((x) => Number(x));
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return t;
+  const newH = (hh + offsetHours + 24) % 24;
+  return `${String(newH).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+};
+
+export default function CommentsLineChart({ data }: Readonly<CommentsLineChartProps>) {
+  const chartData = useMemo(
+    () => data.map((p) => ({ ...p, time: shiftHHMM(p.time, 7) })),
+    [data]
+  );
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm h-[320px]">
       <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
@@ -35,7 +48,7 @@ export default function CommentsLineChart({ data }: CommentsLineChartProps) {
 
       <div className="h-[260px] px-2 pt-3 pb-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="time"
